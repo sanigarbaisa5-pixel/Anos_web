@@ -1,0 +1,561 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#080611">
+<title>ANOS SENSI</title>
+<style>
+:root {
+  --bg:#080611; --panel:#120d21; --line:#34234e;
+  --purple:#a855f7; --pink:#e879f9; --text:#f6f0ff;
+  --muted:#aaa0c0;
+}
+* { box-sizing:border-box }
+body {
+  margin:0;background:radial-gradient(ellipse at top,#32105b,transparent 40%),var(--bg);
+  color:var(--text);font-family:Arial,sans-serif
+}
+header {
+  position:sticky;top:0;z-index:5;background:#080611ed;
+  padding:16px;display:flex;justify-content:space-between;align-items:center;
+  border-bottom:1px solid var(--line);gap:10px;flex-wrap:wrap
+}
+.logo {font-size:25px;font-weight:900;font-style:italic}
+.logo span,h1 span {color:var(--purple)}
+button,select,input {font:inherit}
+button {
+  background:#211434;color:white;border:1px solid var(--line);
+  border-radius:9px;padding:10px;cursor:pointer
+}
+button:hover,button.active {border-color:var(--purple)}
+.primary {background:linear-gradient(120deg,#7c22ed,#c026d3);border:0;font-weight:bold}
+.hero {text-align:center;padding:32px 14px;border-bottom:1px solid var(--line)}
+.hero h1 {font-size:clamp(38px,9vw,68px);margin:12px 0}
+.hero p {color:#c6bddb;max-width:600px;margin:auto;line-height:1.6}
+main {
+  max-width:1250px;margin:auto;padding:14px;display:grid;
+  grid-template-columns:minmax(220px,.8fr) minmax(230px,.9fr) minmax(280px,1.3fr);
+  gap:13px;align-items:start
+}
+.panel {background:linear-gradient(150deg,#120d21,#0b0814);border:1px solid var(--line);border-radius:14px;padding:15px;min-width:0}
+h2 {font-size:17px;margin:0 0 14px}
+.label {display:block;font-size:12px;color:#d2c5e9;margin:13px 0 6px}
+input:not([type=range]),select {
+  width:100%;padding:11px;background:#090716;color:white;
+  border:1px solid var(--line);border-radius:8px
+}
+input[type=range] {width:100%;accent-color:var(--purple)}
+.device-list {display:flex;flex-direction:column;gap:6px;max-height:430px;overflow:auto}
+.device {width:100%;text-align:left;display:flex;justify-content:space-between;gap:8px}
+.device.selected {background:#32145a;border-color:var(--purple)}
+.device small {display:block;color:var(--muted);margin-top:4px}
+.count {font-size:12px;color:var(--muted);margin-bottom:10px}
+.pager {display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+.pager button {padding:7px 10px;font-size:12px}
+.sens-row {display:grid;grid-template-columns:90px 1fr 42px;align-items:center;gap:7px;margin:14px 0;font-size:12px}
+.num {background:#090716;border:1px solid var(--line);padding:6px;border-radius:6px;text-align:center}
+.grid2 {display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.metric {background:#0b0815;border:1px solid var(--line);border-radius:10px;padding:12px;margin-top:12px}
+.metric strong {font-size:24px;color:var(--pink)}
+.metric small {display:block;color:var(--muted);font-size:11px;margin:5px 0}
+.actions {display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:15px}
+.actions button {font-size:12px}
+.hint,.description {font-size:12px;line-height:1.6;color:var(--muted);margin-top:13px}
+.hint {padding:11px;background:#1b160a;border:1px solid #66501e;border-radius:8px;color:#e7d7a6}
+.brand-grid {display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:10px}
+.brand-grid button {font-size:11px;padding:8px 3px}
+.empty {color:var(--muted);padding:18px;text-align:center}
+footer {text-align:center;padding:24px;color:var(--muted);font-size:12px}
+footer b {color:var(--pink)}
+#toast {position:fixed;bottom:15px;left:50%;transform:translateX(-50%);background:#32145a;border:1px solid var(--purple);padding:12px;border-radius:9px;display:none;z-index:9}
+@media(max-width:950px) {main{grid-template-columns:1fr 1fr}.settings-panel{grid-column:1/-1}}
+@media(max-width:600px) {
+  header {align-items:flex-start}
+  main {display:flex;flex-direction:column}
+  .panel {width:100%}
+  .settings-panel {order:3}
+  .device-list {max-height:300px}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">ANOS <span>SENSI</span></div>
+  <div>
+    <button id="homeBtn">⌂ Accueil</button>
+    <button id="devicesBtn">📱 Appareils</button>
+    <button id="favoritesBtn">⭐ Favoris <span id="favCount">0</span></button>
+  </div>
+</header>
+
+<section class="hero">
+  <h1><span>ANOS</span> SENSI</h1>
+  <p>Générateur de réglages Free Fire personnalisés. Choisis ton appareil, configure ton écran et ajuste tes sensibilités.</p>
+</section>
+
+<main>
+<section class="panel filter-panel">
+  <h2>⌕ Rechercher un appareil</h2>
+  <label class="label" for="search">Nom du téléphone</label>
+  <input id="search" placeholder="Ex. Galaxy A06, Spark 10..." autocomplete="off">
+
+  <label class="label" for="brand">Marque</label>
+  <select id="brand"><option value="">Toutes les marques</option></select>
+
+  <label class="label" for="model">Modèle</label>
+  <select id="model"><option value="">Tous les modèles</option></select>
+
+  <button id="searchBtn" class="primary" style="width:100%;margin-top:10px">Rechercher</button>
+
+  <div class="label">Marques populaires</div>
+  <div class="brand-grid" id="brandShortcuts"></div>
+
+  <p class="description">1. Recherche ton téléphone. 2. Sélectionne-le. 3. Configure ton écran. 4. Teste les valeurs en entraînement.</p>
+</section>
+
+<section class="panel" id="devicesPanel">
+  <div class="count" id="resultCount">Appareils</div>
+  <div class="device-list" id="deviceList"></div>
+  <div class="pager" id="pager"></div>
+</section>
+
+<section class="panel settings-panel" id="settingsPanel">
+  <h2>📱 <span id="selectedName">Samsung Galaxy A06</span></h2>
+  <div class="count" id="selectedBrand">Samsung</div>
+
+  <h2>⚙️ Configuration de l'appareil</h2>
+  <div class="grid2">
+    <div>
+      <label class="label" for="screen">Écran (pouces)</label>
+      <input id="screen" type="number" min="3" max="15" step="0.1" value="6.7">
+    </div>
+    <div>
+      <label class="label" for="resolution">Résolution</label>
+      <select id="resolution">
+        <option value="720">HD+ (720p)</option>
+        <option value="1080" selected>Full HD+ (1080p)</option>
+        <option value="1440">QHD (1440p)</option>
+        <option value="other">Autre / iPhone</option>
+      </select>
+    </div>
+    <div>
+      <label class="label" for="fps">FPS habituels</label>
+      <select id="fps">
+        <option value="30">30 FPS</option>
+        <option value="60" selected>60 FPS</option>
+        <option value="90">90 FPS</option>
+        <option value="120">120 FPS</option>
+    </select>
+    </div>
+    <div>
+      <label class="label" for="fingers">Doigts utilisés</label>
+      <select id="fingers">
+        <option value="2">2 doigts</option>
+        <option value="3">3 doigts</option>
+        <option value="4">4 doigts</option>
+        <option value="5">5 doigts ou plus</option>
+      </select>
+    </div>
+  </div>
+
+  <h2 style="margin-top:22px">🎯 Sensibilités</h2>
+  <div class="grid2">
+    <div>
+      <label class="label" for="mode">Mode de jeu</label>
+      <select id="mode">
+        <option value="mix">BR + CS</option>
+        <option value="br">Battle Royale</option>
+        <option value="cs">Clash Squad</option>
+      </select>
+    </div>
+    <div>
+      <label class="label" for="style">Style</label>
+      <select id="style">
+        <option value="balanced">Équilibré</option>
+        <option value="rush">Rush</option>
+        <option value="precision">Précision</option>
+      </select>
+    </div>
+  </div>
+
+  <div id="sensControls"></div>
+
+  <div class="grid2">
+    <div class="metric">
+      <label class="label" for="dpi">DPI proposé</label>
+      <strong id="dpiValue">500</strong>
+      <small>Plage proposée : 200 à 1000</small>
+      <input id="dpi" type="range" min="200" max="1000" value="500">
+    </div>
+    <div class="metric">
+      <label class="label" for="fire">Bouton de tir (%)</label>
+      <strong><span id="fireValue">50</span>%</strong>
+      <small>Taille personnalisable</small>
+      <input id="fire" type="range" min="20" max="100" value="50">
+    </div>
+  </div>
+
+  <p class="description" id="description">Réglages indicatifs à tester.</p>
+  <div class="actions">
+    <button class="primary" id="generateBtn">⚡ Générer</button>
+    <button id="copyBtn">▣ Copier</button>
+    <button id="randomBtn">⟳ Nouvelle proposition</button>
+    <button id="saveBtn">⭐ Favori</button>
+    <button id="resetBtn">↺ Réinitialiser</button>
+  </div>
+
+  <div class="hint">
+    ⚠️ Ces valeurs sont des estimations pour commencer, pas des réglages officiels. Le résultat dépend aussi de tes FPS, de ton contrôle du téléphone et de tes habitudes. Le DPI Android peut modifier l'affichage de l'interface. Note tes valeurs avant de le changer.
+  </div>
+</section>
+</main>
+
+<footer><b>♛ ANOS SENSI</b><br>Free Fire • Créé par Anos<br>Site non affilié à Garena.</footer>
+<div id="toast"></div>
+
+<script>
+const catalog = [
+["Samsung",["Galaxy A04","Galaxy A04e","Galaxy A05","Galaxy A05s","Galaxy A06","Galaxy A14","Galaxy A15","Galaxy A16","Galaxy A24","Galaxy A25","Galaxy A26","Galaxy A34","Galaxy A35","Galaxy A36","Galaxy A54","Galaxy A55","Galaxy A56","Galaxy S21 FE","Galaxy S22","Galaxy S23","Galaxy S24","Galaxy M14","Galaxy M15"]],
+["Xiaomi",["Redmi 9A","Redmi 10A","Redmi 10C","Redmi 12C","Redmi 13C","Redmi 14C","Redmi Note 10","Redmi Note 11","Redmi Note 12","Redmi Note 12S","Redmi Note 13","Redmi Note 13 Pro","Redmi Note 14","Redmi Note 14 Pro","Poco C65","Poco M6","Poco X3","Poco X5","Poco X6 Pro"]],
+["Infinix",["Smart 6","Smart 7","Smart 8","Smart 9","Hot 10","Hot 11","Hot 12","Hot 30","Hot 40","Hot 40i","Hot 50","Hot 50i","Hot 50 Pro","Note 10","Note 12","Note 30","Note 40","GT 20 Pro"]],
+["Tecno",["Spark 8","Spark 10","Spark 10 Pro","Spark 20","Spark 20C","Spark 20 Pro","Spark 30","Spark 30C","Spark 40","Spark Go 2024","Pop 7","Pop 8","Camon 19","Camon 20","Camon 30","Camon 30 Premier","Pova 4","Pova 6"]],
+["Realme",["C11","C21","C25","C30","C33","C35","C51","C53","C55","C61","C63","C67","Narzo 50","Narzo 60","Narzo 70","11 Pro","12 Pro"]],
+["OPPO",["A16","A17","A18","A3x","A38","A53","A54","A57","A58","A60","A78","A79","Reno 8","Reno 10","Reno 11","Reno 12","F21 Pro"]],
+["Apple",["iPhone 11","iPhone 11 Pro","iPhone 12","iPhone 12 Pro","iPhone 13","iPhone 13 Pro","iPhone 14","iPhone 14 Plus","iPhone 15","iPhone 15 Pro","iPhone 16","iPhone 16 Pro"]],
+["Huawei",["Y6p","Y7a","Y8p","Y9a","Nova 9","Nova 10","Nova 11","Nova 12","Pura 70"]],
+["itel",["A49","A60","A70","A80","P40","P55","S23","S24","RS4"]],
+["OnePlus",["Nord N10","Nord N20","Nord N30","Nord CE 3 Lite","Nord CE 4","OnePlus 8T","OnePlus 9","OnePlus 10T","12R"]],
+["Vivo",["Y03","Y15s","Y16","Y17s","Y20","Y21","Y27","Y28","Y36","Y100","V29"]],
+["Motorola",["Moto G Power","Moto G Play","Moto G Stylus","Moto G54","Moto G55","Moto G84","Edge 30","Edge 40"]],
+["Google",["Pixel 6a","Pixel 7a","Pixel 8a","Pixel 7","Pixel 8","Pixel 8 Pro","Pixel 9"]],
+["Nokia",["G10","G20","G22","G42","G60","C21","C32"]],
+["Sony",["Xperia 10 IV","Xperia 10 V","Xperia 5 IV","Xperia 5 V"]],
+["Asus",["ROG Phone 5","ROG Phone 6","ROG Phone 7","Zenfone 10"]],
+["Lenovo",["Legion Phone Duel","Tab M10","K14"]],
+["ZTE",["Blade A31","Blade A51","Blade A73","Nubia Neo 2"]],
+["Nothing",["Phone (1)","Phone (2a)","Phone (2)"]],
+["Honor",["X6a","X7b","X8b","X9b","90 Lite","Magic6 Lite"]]
+];
+
+const devices = [];
+catalog.forEach(([brand,models]) => {
+  models.forEach(model => devices.push({brand,model,name:brand+" "+model}));
+});
+
+const sensNames = ["Général","Point rouge","Lunette 2x","Lunette 4x","Lunette AWM","Vue libre"];
+const $ = id => document.getElementById(id);
+let selected = devices.findIndex(d => d.name === "Samsung Galaxy A06");
+let page = 1;
+const pageSize = 10;
+let favorites = new Set();
+let favoriteView = false;
+let currentValues = null;
+
+function normalize(text) {
+  return text.toLocaleLowerCase("fr")
+    .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+    .replace(/[^a-z0-9]/g,"");
+}
+
+function clamp(value,min,max) {
+  return Math.max(min,Math.min(max,value));
+}
+
+/* Base de départ ajustée aux préférences.
+   Ce n'est pas une mesure physique de la sensibilité. */
+function generate(device, randomize=false) {
+  const screen = clamp(Number($("screen").value)||6.5,3,15);
+  const fps = Number($("fps").value);
+  const fingers = Number($("fingers").value);
+  const resolution = $("resolution").value;
+  const style = $("style").value;
+  const mode = $("mode").value;
+
+  let screenFactor = (6.5-screen)*3;
+  let fpsFactor = fps >= 90 ? 4 : fps <= 30 ? -4 : 0;
+  let fingerFactor = (fingers-2)*3;
+  let resolutionFactor = resolution === "720" ? 3 :
+    resolution === "1440" ? -3 : 0;
+
+  let base = [150,140,130,115,75,130];
+
+  base = base.map((value,i) => {
+    let adjust = screenFactor + fpsFactor + fingerFactor + resolutionFactor;
+    if(i >= 2) adjust *= 0.65;
+    if(style === "rush") adjust += i < 2 ? 9 : 4;
+    if(style === "precision") adjust -= i === 0 ? 8 : 5;
+    if(mode === "cs" && i < 2) adjust += 5;
+    if(mode === "br" && i === 5) adjust += 4;
+    if(randomize) adjust += Math.floor(Math.random()*13)-6;
+    return Math.round(clamp(value+adjust,0,200));
+  });
+
+  const dpiBase = clamp(
+    450 + (screen-6.5)*20 + (fingers-2)*20 +
+    (fps>=90?20:0) + (resolution==="1440"?-15:0),
+    200,1000
+  );
+
+  return {
+    sens:base,
+    dpi:Math.round(clamp(dpiBase+(randomize?Math.floor(Math.random()*61)-30:0),200,1000)),
+    fire:Math.round(clamp(50+(fingers-2)*2+(style==="rush"?4:0)+(randomize?Math.floor(Math.random()*9)-4:0),20,100))
+  };
+}
+
+function current() { return devices[selected]; }
+
+function fillControls(values) {
+  $("sensControls").innerHTML = "";
+  sensNames.forEach((name,i) => {
+    const row = document.createElement("div");
+    row.className = "sens-row";
+    const label = document.createElement("label");
+    label.htmlFor = "sens"+i;
+    label.textContent = name;
+    const slider = document.createElement("input");
+    slider.id = "sens"+i;
+    slider.type = "range";
+    slider.min = 0;
+    slider.max = 200;
+    slider.value = values[i];
+    const number = document.createElement("span");
+    number.className = "num";
+    number.id = "sensVal"+i;
+    number.textContent = values[i];
+    slider.addEventListener("input",() => number.textContent = slider.value);
+    row.append(label,slider,number);
+    $("sensControls").appendChild(row);
+  });
+}
+
+function readSens() {
+  return sensNames.map((_,i) => Number($("sens"+i).value));
+}
+
+function applyValues(values) {
+  currentValues = values;
+  fillControls(values.sens);
+  $("dpi").value = values.dpi;
+  $("dpiValue").textContent = values.dpi;
+  $("fire").value = values.fire;
+  $("fireValue").textContent = values.fire;
+  updateDevice();
+  updateDescription();
+}
+
+function applySuggestion(randomize=false) {
+  applyValues(generate(current(),randomize));
+}
+
+function updateDevice() {
+  const d = current();
+  $("selectedName").textContent = d.name;
+  $("selectedBrand").textContent = d.brand;
+  $("favCount").textContent = favorites.size;
+  $("saveBtn").textContent = favorites.has(d.name) ? "★ Retirer favori" : "⭐ Favori";
+}
+
+function updateDescription() {
+  $("description").textContent =
+    "Proposition pour "+current().name+
+    " : écran "+$("screen").value+" pouces, "+
+    $("fps").value+" FPS, "+$("fingers").value+
+    " doigts. Ajuste les curseurs après un test en jeu.";
+}
+
+function getFiltered() {
+  const q = normalize($("search").value.trim());
+  const brand = $("brand").value;
+  const model = $("model").value;
+  return devices.filter(d =>
+    (!favoriteView || favorites.has(d.name)) &&
+    (!brand || d.brand === brand) &&
+    (!model || d.name === model) &&
+    (!q || normalize(d.name).includes(q))
+  );
+}
+
+function renderDevices() {
+  const filtered = getFiltered();
+  const maxPage = Math.max(1,Math.ceil(filtered.length/pageSize));
+  page = clamp(page,1,maxPage);
+  $("resultCount").textContent = filtered.length+" appareil(s) trouvé(s)";
+  const list = $("deviceList");
+  list.innerHTML = "";
+
+  if(!filtered.length) {
+    list.innerHTML = '<div class="empty">Aucun appareil trouvé. Vérifie l’orthographe ou choisis une autre marque.</div>';
+  }
+
+  filtered.slice((page-1)*pageSize,page*pageSize).forEach(d => {
+    const index = devices.findIndex(x => x.name === d.name);
+    const btn = document.createElement("button");
+    btn.className = "device"+(index===selected?" selected":"");
+    const name = document.createElement("span");
+    name.textContent = "📱 "+d.name;
+    const star = document.createElement("span");
+    star.textContent = favorites.has(d.name) ? "★" : "›";
+    btn.append(name,star);
+    btn.addEventListener("click",() => {
+      selected = index;
+      applySuggestion();
+      renderDevices();
+    });
+    list.appendChild(btn);
+  });
+
+  const pager = $("pager");
+  pager.innerHTML = "";
+  for(let p=1;p<=maxPage;p++) {
+    const btn = document.createElement("button");
+    btn.textContent = p;
+    if(p===page) btn.className = "active";
+    btn.addEventListener("click",() => {page=p;renderDevices();});
+    pager.appendChild(btn);
+  }
+}
+
+function renderModels() {
+  const old = $("model").value;
+  const brand = $("brand").value;
+  $("model").innerHTML = '<option value="">Tous les modèles</option>';
+  devices.filter(d => !brand || d.brand===brand).forEach(d => {
+    const option = document.createElement("option");
+    option.value = d.name;
+    option.textContent = d.model;
+    $("model").appendChild(option);
+  });
+  if([...$("model").options].some(o=>o.value===old)) $("model").value=old;
+}
+
+function fillBrands() {
+  [...new Set(devices.map(d=>d.brand))].sort().forEach(brand => {
+    const option = document.createElement("option");
+    option.value = brand;
+    option.textContent = brand;
+    $("brand").appendChild(option);
+  });
+
+  ["Samsung","Xiaomi","Infinix","Tecno","Realme","OPPO","Apple","Huawei","itel","OnePlus","Vivo"].forEach(brand => {
+    const btn = document.createElement("button");
+    btn.textContent = brand;
+    btn.addEventListener("click",() => {
+      $("brand").value = brand;
+      $("model").value = "";
+      favoriteView = false;
+      page = 1;
+      renderModels();
+      renderDevices();
+    });
+    $("brandShortcuts").appendChild(btn);
+  });
+  renderModels();
+}
+
+function showToast(message) {
+  $("toast").textContent = message;
+  $("toast").style.display = "block";
+  clearTimeout(showToast.timer);
+  showToast.timer = setTimeout(()=>$("toast").style.display="none",1800);
+}
+
+function settingsText() {
+  return "ANOS SENSI - "+current().name+
+    "\nÉcran: "+$("screen").value+" pouces"+
+    "\nRésolution: "+$("resolution").selectedOptions[0].text+
+    "\nFPS: "+$("fps").value+
+    "\nDoigts: "+$("fingers").value+
+    "\nMode: "+$("mode").selectedOptions[0].text+
+    "\nStyle: "+$("style").selectedOptions[0].text+
+    "\n"+sensNames.map((n,i)=>n+": "+readSens()[i]).join("\n")+
+    "\nDPI proposé: "+$("dpi").value+
+    "\nBouton de tir: "+$("fire").value+"%"+
+    "\nValeurs indicatives à tester en entraînement.";
+}
+
+$("search").addEventListener("input",()=>{page=1;favoriteView=false;renderDevices();});
+$("searchBtn").addEventListener("click",()=>{page=1;favoriteView=false;renderDevices();});
+$("brand").addEventListener("change",()=>{renderModels();page=1;renderDevices();});
+$("model").addEventListener("change",()=>{
+  const i = devices.findIndex(d=>d.name===$("model").value);
+  if(i>=0){selected=i;applySuggestion();}
+  page=1;renderDevices();
+});
+
+["screen","resolution","fps","fingers","mode","style"].forEach(id => {
+  $(id).addEventListener("change",()=>applySuggestion());
+});
+
+$("generateBtn").addEventListener("click",()=>applySuggestion());
+$("randomBtn").addEventListener("click",()=>applySuggestion(true));
+$("resetBtn").addEventListener("click",()=>{
+  $("screen").value = 6.7;
+  $("resolution").value = "1080";
+  $("fps").value = "60";
+  $("fingers").value = "2";
+  $("mode").value = "mix";
+  $("style").value = "balanced";
+  applySuggestion();
+  showToast("Réglages réinitialisés");
+});
+
+$("dpi").addEventListener("input",()=>{$("dpiValue").textContent=$("dpi").value;});
+$("fire").addEventListener("input",()=>{$("fireValue").textContent=$("fire").value;});
+
+$("copyBtn").addEventListener("click",async()=>{
+  const text = settingsText();
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast("Réglages copiés !");
+  } catch(e) {
+    const area = document.createElement("textarea");
+    area.value = text;
+    document.body.appendChild(area);
+    area.select();
+    const success = document.execCommand("copy");
+    area.remove();
+    showToast(success ? "Réglages copiés !" : "Copie impossible sur ce navigateur");
+  }
+});
+
+$("saveBtn").addEventListener("click",()=>{
+  const name = current().name;
+  if(favorites.has(name)) {
+    favorites.delete(name);
+    showToast("Favori retiré");
+  } else {
+    favorites.add(name);
+    showToast("Appareil ajouté aux favoris");
+  }
+  updateDevice();
+  renderDevices();
+});
+
+$("favoritesBtn").addEventListener("click",()=>{
+  favoriteView = !favoriteView;
+  $("favoritesBtn").classList.toggle("active",favoriteView);
+  page=1;
+  renderDevices();
+  $("devicesPanel").scrollIntoView({behavior:"smooth",block:"start"});
+});
+
+$("devicesBtn").addEventListener("click",()=>{
+  $("devicesPanel").scrollIntoView({behavior:"smooth",block:"start"});
+});
+
+$("homeBtn").addEventListener("click",()=>{
+  favoriteView=false;
+  $("favoritesBtn").classList.remove("active");
+  window.scrollTo({top:0,behavior:"smooth"});
+  renderDevices();
+});
+
+fillBrands();
+applySuggestion();
+renderDevices();
+</script>
+</body>
+</html>
